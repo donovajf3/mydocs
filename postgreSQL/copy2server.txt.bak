@@ -1,0 +1,165 @@
+dayoeldba003
+username enterprisedb
+pwd 	 welcome123
+
+dayoeldba001
+dayoeldba002
+dayoeldba003
+-don't use 4-
+dayoeldba005
+
+pg_dump -C -h localhost -U localuser dbname | psql -h remotehost -U remoteuser dbname 
+
+The -C option of pg_dump adds a commend to create the database at the begining of the dump. 
+You can omit this option and run "psql newdbname" where "newdbname" is a database created on the receiving host. 
+pg_dump 	-h localhost -U localuser dbname | psql -h remotehost -U remoteuser NEWdbname 
+		--no-owner
+		
+pg_dump -h localhost -U localuser dbname | ssh remoteuser@remotehost psql -h remotehost -U remoteuser NEWdbname 
+
+2nd attempt:
+----------------------------------------------------
+pg_dump -h dayoeldba002 -U enterprisedb myefrom2 | ssh enterprisedb@dayoeldba003 psql -h dayoeldba003 -U enterprisedb myefrom3
+pg_dump -c -h dayoeldba002 -U enterprisedb myefrom2 | ssh enterprisedb@dayoeldba003 psql -h dayoeldba003 -U enterprisedb myefrom3
+
+3rd attempt day:
+----------------------------------------------------
+pg_dump source_db_name --schema schema_name | psql -h destination_hostname -U distination_user_name -d distination_db_name
+
+drop schemas 1st
+psql -h dayoeldba003 -U enterprisedb -d NCLTraining -c 'DROP SCHEMA gracenote CASCADE'
+psql -h dayoeldba003 -U enterprisedb -d NCLTraining -c 'DROP SCHEMA gracenote_staging CASCADE'
+
+pg_dump NCLProd --schema gracenote | psql -h dayoeldba003 -U enterprisedb -d NCLTraining
+pg_dump NCLProd --schema gracenote_staging | psql -h dayoeldba003 -U enterprisedb -d NCLTraining
+-------------------------------
+	CREATE TABLESPACE myefrom3_data OWNER enterprisedb LOCATION '/pgDATA/as9.6/TBS/';
+
+	CREATE DATABASE myefrom3
+    	WITH 
+    	OWNER = enterprisedb
+    	ENCODING = 'UTF8'
+    	LC_COLLATE = 'en_US.UTF-8'
+    	LC_CTYPE = 'en_US.UTF-8'
+    	TABLESPACE = myefrom3_data
+    	CONNECTION LIMIT = -1;
+
+
+	\c myefrom3
+
+CREATE SCHEMA  gracenote_staging
+AUTHORIZATION  gracenote_staging;
+
+CREATE TABLE myefrom2_table ( 
+data1 VARCHAR,
+data2 VARCHAR,
+data3 VARCHAR);
+
+INSERT INTO gracenote.myefrom2_table (data1,data2,data3) VALUES ('FROM2_1','FROM2_2','FROM2_3');
+INSERT INTO gracenote.myefrom2_table (data1,data2,data3) VALUES ('FROM2_4','FROM2_5','FROM2_6');
+INSERT INTO gracenote.myefrom2_table (data1,data2,data3) VALUES ('FROM2_7','FROM2_8','FROM2_9');
+
+
+yum install firewalld
+systemctl enable firewalld
+systemctl start firewalld
+firewall-cmd --permanent --zone=public --add-port=5444/tcp
+firewall-cmd --reload
+
+SELECT pg_terminate_backend(pg_stat_activity.pid)
+FROM pg_stat_activity
+WHERE pg_stat_activity.datname = 'NCLProd'
+  AND pid <> pg_backend_pid();
+  
+localhost:5432:postgres:postgres:tTwpg$17
+dayrhemyep004:5432:*:*:tTwpg$17
+dayrhemyep004.enterprisenet.org:5432:*:*:tTwpg$17
+
+ERROR:  role "nclprodadmin" does not exist
+CREATE TABLE
+ERROR:  role "nclprodadmin" does not exist
+CREATE TABLE
+ERROR:  role "nclprodadmin" does not exist
+CREATE TABLE
+ERROR:  role "nclprodadmin" does not exist
+CREATE TABLE
+ERROR:  role "nclprodadmin" does not exist
+
+ALTER TABLE
+ERROR:  role "user_read_group" does not exist
+ERROR:  role "user_read_group" does not exist
+ERROR:  role "user_read_group" does not exist
+ERROR:  role "user_read_group" does not exist
+ERROR:  role "user_read_group" does not exist
+ERROR:  role "user_read_group" does not exist
+ERROR:  role "user_read_group" does not exist
+ERROR:  role "user_read_group" does not exist
+ERROR:  role "user_read_group" does not exist
+ERROR:  role "user_read_group" does not exist
+ERROR:  role "user_read_group" does not exist
+ERROR:  role "user_read_group" does not exist
+
+for tbl in `psql -h dayrhemyet002 -qAt -c "select tablename from pg_tables where schemaname = 'gracenote';" gracenote` ; 
+do  psql  -h dayrhemyet002 -c "alter table \"$tbl\" owner to "NCLTrainingAdmin"" NCLTraining ; done
+for tbl in `psql -h dayrhemyet002 -qAt -c "select tablename from pg_tables where schemaname = 'gracenote_staging';" NCLTraining` ; 
+do  psql  -h dayrhemyet002 -c "alter table \"$tbl\" owner to "NCLTrainingAdmin"" NCLTraining ; done
+
+psql -h dayrhemyet002 -U postgres -d NCLTraining -c 'ALTER SCHEMA gracenote OWNER TO "NCLTrainingAdmin"'
+for tbl in `psql -qAt -c "select tablename from pg_tables where schemaname = 'gracenote';" NCLTraining` ; 
+do  psql -c "alter table gracenote.\"$tbl\" owner to 'NCLTrainingAdmin'" NCLTraining ; done
+
+for tbl in `psql -h dayrhemyet002 -qAt -c "select tablename from pg_tables where schemaname = 'gracenote';" NCLTraining` ;  
+do  psql -h dayrhemyet002 -c "alter table gracenote.\"$tbl\" owner to \"NCLTrainingAdmin\"" NCLTraining ; done
+
+-----------------------------------------
+select 'alter function '||nsp.nspname||'.'||p.proname||'('||pg_get_function_identity_arguments(p.oid)||') owner to "NCLTrainingAdmin";'
+from pg_proc p
+  join pg_namespace nsp ON p.pronamespace = nsp.oid
+where nsp.nspname = 'gracenote_staging';
+
+------------ VIEWS --------------------------------
+for tbl in `psql -h dayrhemyet002 -qAt -c "select table_name from information_schema.views where 
+table_schema = 'gracenote_staging';" NCLTraining`; 
+do  psql -h dayrhemyet002 -c "alter table gracenote_staging.\"$tbl\" owner to \"NCLTrainingAdmin\"" NCLTraining ; done
+
+
+
+
+
+
+
+pg_dump NCLTraining --schema gracenote | psql -h dayoeldba002 -U enterprisedb -p 5444 -d NCLProd
+pg_dump NCLTraining --schema gracenote_staging | psql -h dayoeldba002 -U enterprisedb -p 5444 -d NCLProd
+
+dayrhemyet002.enterprisenet.org:5432:*:*:tTwpg$17
+dayrhemyet002:5432:*:*:tTwpg$17
+
+dayoeldba002:5444:NCLProd:enterprisedb:welcome123
+dayoeldba002:5444:*:enterprisedb:welcome123
+
+dayoeldba002:*:*:*:welcome123
+dayoeldba002.enterprisenet.org:5444:NCLProd:enterprisedb:welcome123
+dayoeldba002.enterprisenet.org:5444:*:enterprisedb:welcome123
+
+dayoeldba002:5444:*:*:welcome123
+dayoeldba002.enterprisenet.org:5444:*:*:welcome123
+
+dayoeldba002.enterprisenet.org:*:*:*:welcome123
+
+
+dayrhemyet002.enterprisenet.org:5444:*:*:welcome123
+dayrhemyet002:5444:*:*:welcome123
+dayrhemyet002:*:*:enterprisedb:welcome123
+##dayrhemyet002.enterprisenet.org:5444:*:*:welcome123
+##dayrhemyet002:5444:*:*:welcome123
+##dayrhemyet002:*:*:enterprisedb:welcome123
+##dayrhemyet002:*:*:*:welcome123
+##dayrhemyet002.enterprisenet.org:*:*:*:welcome123
+*:*:*:*:welcome123
+
+
+-----------------------
+SELECT datid,datname,pid,usesysid,usename,backend_start,query_start,state FROM pg_stat_activity;
+SELECT datid,datname,pid,usesysid,usename,backend_start,query_start,state,query FROM pg_stat_activity;
+
+

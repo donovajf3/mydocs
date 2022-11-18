@@ -1,0 +1,182 @@
+Host          IDs				Pwd
+tparhectmu001 controlm, control2, ctrlmt	Run2Fast
+
+tparhectmq002 controlm 	Run2Fast			Run2Look
+tparhectmq002 ecs 		Run2Look
+
+PostGRES notes:
+HOST tparhectmu001:
+DEV = controlm - 
+	host login ID: 		controlm 
+	port:               5433
+	directory: 			/controlm/controlm
+	backup directory: 	/remotebu/disk_backups/DEV_CONTROLM
+	backup script cmd: 	/controlm/controlm/nmr_scripts/bin/pg_backup/pg_backup.sh 5433 DEV_CONTROLM
+	cleanup cmd:		/controlm/controlm/nmr_scripts/bin/pg_backup/del_postgres_dbdumps DEV_CONTROLM verbose
+	log file directory: /controlm/controlm/nmr_scripts/bin/pg_backup/log/	
+	backup command: 	/controlm/controlm/pgsql/bin/pg_dump ctrlm900 > /remotebu/disk_backups/DEV_controlm/%ODATE%
+TEST=ctrlmt - 
+	host login ID: 		ctrlmt 
+	port:               5434
+	directory: 			/controlm/ctrlmt
+	backup directory: 	/remotebu/disk_backups/TEST_CTRLMT
+	backup script cmd:	/controlm/controlm/nmr_scripts/bin/pg_backup/pg_backup.sh 5434 TEST_CTRLMT
+	cleanup cmd:		/controlm/controlm/nmr_scripts/bin/pg_backup/del_postgres_dbdumps TEST_CTRLMT verbose
+	log file directory: /controlm/controlm/nmr_scripts/bin/pg_backup/log/
+	backup command: 	/controlm/ctrlmt/pgsql/bin/pg_dump ctrlm900 > /remotebu/disk_backups/TEST_ctrlmt/%ODATE%
+UAT=control2 - 
+	host login ID: 		control2
+	port:               5432
+	directory: 			/controlm/controlm2
+	backup directory: 	/remotebu/disk_backups/UAT_CONTROLM2
+	backup script cmd:	/controlm/controlm/nmr_scripts/bin/pg_backup/pg_backup.sh 5432 UAT_CONTROLM2
+	cleanup cmd:		/controlm/controlm/nmr_scripts/bin/pg_backup/del_postgres_dbdumps UAT_CONTROLM2 verbose
+	log file directory: /controlm/controlm/nmr_scripts/bin/pg_backup/log/
+	backup command: 	/controlm/controlm2/pgsql/bin/pg_dump ctrlm900 > /remotebu/disk_backups/UAT_controlm2/%ODATE%
+
+
+HOST tparhectmq002:
+QA=controlm -
+	host login ID: 		controlm 
+	port:               5433
+	directory: 			/controlm/controlm
+	PG location:		/controlm/controlm/pgsql/bin/
+	backup directory: 	/remotebu/disk_backups/QA_CONTROLM
+	backup script cmd:	/controlm/nmr_scripts/bin/pg_backup/pg_backup.sh 5433 QA_CONTROLM
+	cleanup cmd:		/controlm/nmr_scripts/bin/pg_backup/del_postgres_dbdumps QA_CONTROLM verbose
+	log directory: 		/controlm/nmr_scripts/bin/pg_backup/log
+	backup command: 	/controlm/controlm/pgsql/bin/pg_dump ctrlm900 > /remotebu/disk_backups/QA_CONTROLM/%ODATE%
+QA EM=ecs -
+	host login ID: 		ecs 
+	port:               5432
+	directory: 			/controlm/ecs
+	PG location:		/controlm/ecs/ctm_em/pgsql/bin/
+	backup directory: 	/remotebu/disk_backups/QA_EM
+	backup script cmd:	/controlm/nmr_scripts/bin/pg_backup/pg_backup.sh 5432 QA_EM
+	cleanup cmd:		/controlm/nmr_scripts/bin/pg_backup/del_postgres_dbdumps QA_EM verbose	
+	log directory: 		/controlm/nmr_scripts/bin/pg_backup/log
+	backup command: 	/controlm/ecs/pgsql/bin/pg_dump ctrlm900 > /remotebu/disk_backups/QA_EM/%ODATE%
+
+alter system set archive_command='';
+pg_ctl reload
+
+PG connection ID is; ctmuser      pwd: ctmuser9
+                     postgres     pwd: ctmuser9
+GUI (EM) on QA box;  emuser       pwd: emuser9 
+
+management scripts: /controlm/controlm/ctm_server/scripts
+
+Notes:
+	     status: $> pg_ctl status
+control program: $> pg_ctl --help
+        connect: $> psql -U <user> -P <password> <database>
+	       exit: \quit
+  display users: \du
+           help: \?
+
+
+there already is a Role name of "postgres" - do we want to use that or create a super pgbackup?
+ctrlm900=> \du
+                             List of roles
+ Role name |                   Attributes                   | Member of
+-----------+------------------------------------------------+-----------
+ ctmuser   |                                                | {}
+ postgres  | Superuser, Create role, Create DB, Replication | {} 
+
+ Using password file .pgpass (part of PostgreSQL) w/ permissions set to 600
+ 
+  "pg_ctl" -D "C:\PGdatabases" -l logfile start
+  
+ --------------------------- notes -------------------------------
+ initdb
+	Success. You can now start the database server using:
+
+    postgres -D /home/donovajf/pgsql/data
+or
+    pg_ctl -D /home/donovajf/pgsql/data -l logfile start
+or
+	pg_ctl start
+	
+Log file directory: $PGDATA/pg_log
+
+Reload:
+/opt/app/edb/as9.6/bin/pg_ctl reload
+======================
+Logging: (be generous)
+	log_destination = 'csvlog'
+	log_directory = 'pg_log'
+	logging_collector = on
+	log_filename = 'postgres-%Y-%m-%d_%H%M%S'
+	log_rotation_age = 1d
+	log_rotation_size = 1GB
+	log_min_duration_statement = 250ms
+	log_checkpoints = on
+	log_connections = on
+	log_disconnections = on
+	log_lock_waits = on
+	log_temp_files = 0 
+ 
+Memory:
+ shared_buffers
+	• Below 2GB (?), set to 20% of total system memory.
+	• Below 32GB, set to 25% of total system memory.
+	• Above 32GB (lucky you!), set to 8GB.
+
+ work_mem
+	• Start low: 32-64MB.
+	• Look for ‘temporary file’ lines in logs.
+	• Set to 2-3x the largest temp file you see.
+	• Can cause a huge speed-up if set properly!
+	• But be careful: It can use that amount of memory per planner node. 
+		Don't go crazy, rule of thumb: divide (1/2 system FREE memory) by (# of active connections)
+ maintenance_work_mem
+	 • 10% of system memory, up to 1GB.
+	 • Maybe even higher if you are having VACUUM problems
+ effective_cache_size
+	•Set to the amount of file system cache available ("free -m"  amount used by buffers)
+	•If you don’t know, set it to 50% of total system memory
+	
+Checkpoints:
+	wal_buffers = 16MB
+	checkpoint_completion_target = 0.9
+	checkpoint_timeout = 10m-30m # Depends on restart time
+	checkpoint_segments = 32 # To start
+
+Planner settings:
+	• effective_io_concurrency — Set to the number of I/O channels; otherwise, ignore it.
+	• random_page_cost — 3.0 for a typical RAID10 array, 2.0 for a SAN, 1.1 for Amazon EBS.
+	
+Do not touch fsync, synchronous_commit
+
+WAL (write ahead log):
+
+Create user schema:
+CREATE SCHEMA schema_name AUTHORIZATION user_name;
+CREATE TABLESPACE tablespace_name [ OWNER user_name ] LOCATION 'directory';
+
+enterprisedb> psql -U enterprisedb
+edb=# CREATE USER cleperf WITH PASSWORD 'c13p3rF';
+edb=# CREATE TABLESPACE cleperf_data OWNER cleperf LOCATION '/pgDATA/TBS/tbs_cleperf_data/cleperf_data';
+edb=# CREATE DATABASE tibcle WITH OWNER cleperf TEMPLATE template0 TABLESPACE cleperf_data;
+edb=# \c tibcle
+tibcle=# CREATE SCHEMA AUTHORIZATION cleperf;
+
+\c tibcle
+CREATE USER clereadonly WITH PASSWORD 'c13p3rF';
+CREATE SCHEMA AUTHORIZATION clereadonly;
+
+GRANT SELECT ON TABLE cleperf.exceptionrec TO clereadonly;
+GRANT SELECT ON TABLE cleperf.log TO clereadonly;
+
+ALTER TABLE cleperf.exceptionrec_part_ex_aug_2016 OWNER to cleperf;
+ALTER TABLE cleperf.exceptionrec_part_ex_dec_2016 OWNER to cleperf;
+ALTER TABLE cleperf.exceptionrec_part_ex_maxval OWNER to cleperf;
+ALTER TABLE cleperf.exceptionrec_part_ex_nov_2016 OWNER to cleperf;
+ALTER TABLE cleperf.exceptionrec_part_ex_oct_2016 OWNER to cleperf;
+ALTER TABLE cleperf.exceptionrec_part_ex_sep_2016 OWNER to cleperf;
+ALTER TABLE cleperf.log_part_log_aug_2016 OWNER to cleperf;
+ALTER TABLE cleperf.log_part_log_dec_2016 OWNER to cleperf;
+ALTER TABLE cleperf.log_part_log_maxval OWNER to cleperf;
+ALTER TABLE cleperf.log_part_log_nov_2016 OWNER to cleperf;
+ALTER TABLE cleperf.log_part_log_oct_2016 OWNER to cleperf;
+ALTER TABLE cleperf.log_part_log_sep_2016 OWNER to cleperf;

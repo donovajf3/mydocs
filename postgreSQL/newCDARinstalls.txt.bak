@@ -1,0 +1,63 @@
+LHRRHEPGSP001.enterprisenet.org - Rene
+lhrrhepgsp002.enterprisenet.org - setup completed
+LHRRHEPGSP003.enterprisenet.org - setup completed
+
+***add note in pgconfig to not edit, edit the include file - 
+
+LHRRHEPGSP004.enterprisenet.org setup - working...
+LHRRHEPGSP005.enterprisenet.org setup
+LHRRHEPGSP006.enterprisenet.org setup - Sakthi
+
+
+
+Copy the software from dayrhepgsp018.  (include .bin files as those are the patches that need to be applied)
+/opt/app/edb/
+
+EDB Postgres Advanced Server [Y/n] :Y
+EDB Postgres Connectors [Y/n] : Y
+EDB Postgres Advanced Server Infinite Cache [Y/n] : Y
+EDB Postgres Migration Toolkit [Y/n] : Y
+EDB Postgres pgAdmin 4 [Y/n] : Y
+EDB Postgres pgPool-II [Y/n] : Y
+EDB Postgres pgPool-II Extensions [Y/n] : Y
+EDB Postgres Advanced Server EDB*Plus [Y/n] : Y
+EDB Postgres Advanced Server Slony Replication [Y/n] : N
+EDB Postgres pgBouncer [Y/n] : Y
+
+Patches:
+edb_as96_dbserver.bin ^
+edb_as96_pgpool35_extension.bin ^
+edb_connectors.bin ^
+edb_mtk.bin ^
+edb_pgAdmin4.bin ^
+edb_pgbouncer_17.bin ^
+edb_pgpool_35.bin ^
+edb_sbp_96.bin 
+
+okay the DOC has this:
+pgbackrest --stanza=<STANZA NAME> --log-level-console=info stanza-create --db-port=5444
+Shouldn't is be this?
+pgbackrest stanza-create --stanza=<STANZA NAME> --log-level-console=info stanza-create --db-port=5444
+
+/var/log/pgbackrest make owned by edb
+/etc/pgbackrest.conf make owned by edb
+
+
+Meeting item:
+	Documentation
+		would help to designate when to drop to edb/pg & when to root
+	scripts etc repository - dayoelpgsqlt? share site? /opt/app/software/standard_scripts
+	which scripts, cronjobs on new installs
+	communication/coordination - Many cooks in the kitchen
+	setup ssh trusts @ least from repository
+	aliases
+		alias pg='cd $PGDATA'
+		alias pglogs='cd $PGDATA/pg_log'
+		alias scripts='cd ~/scripts'
+---------------------------------------------------------------------		
+export PGVERSION=`pg_ctl -V`
+
+echo " "
+echo "Running postgreSQL version:"
+echo "${PGVERSION}"
+echo " "
